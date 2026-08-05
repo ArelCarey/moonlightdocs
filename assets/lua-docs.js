@@ -229,9 +229,22 @@
   function setupScrollSpy() {
     const links = [...document.querySelectorAll(".side-nav a[href^='#'], #page-outline a")];
     const sections = [...document.querySelectorAll("main > .doc-section")];
-    const activate = (id) => links.forEach((link) => {
-      link.classList.toggle("active", link.getAttribute("href") === `#${id}`);
-    });
+    const sideNav = document.querySelector(".side-nav");
+    const indicator = sideNav.querySelector(".nav-indicator");
+    let indicatorReady = false;
+    const activate = (id) => {
+      links.forEach((link) => {
+        link.classList.toggle("active", link.getAttribute("href") === `#${id}`);
+      });
+      const activeLink = sideNav.querySelector(`a[href="#${CSS.escape(id)}"]`);
+      if (!activeLink) return;
+      const y = activeLink.offsetTop + (activeLink.offsetHeight - indicator.offsetHeight) / 2;
+      indicator.style.transform = `translate3d(0, ${Math.round(y)}px, 0)`;
+      if (!indicatorReady) {
+        indicatorReady = true;
+        window.requestAnimationFrame(() => indicator.classList.add("ready"));
+      }
+    };
     let scheduled = false;
     let pendingTarget = "";
 
