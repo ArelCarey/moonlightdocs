@@ -5,10 +5,10 @@
 `lunar.keys` 常量表和全局 `print`。
 
 - 入门与设计说明：[lua-scripting.md](lua-scripting.md)
-- 基础示例：[example_overlay.lua](examples/lua/example_overlay.lua)
-- 中文 UI 示例：[chinese_demo.lua](examples/lua/chinese_demo.lua)
-- 疯眼算法示例：[mad_eyes_custom.lua](examples/lua/mad_eyes_custom.lua)
-- 镜头与地面射线示例：[camera_ground_demo.lua](examples/lua/camera_ground_demo.lua)
+- 基础示例：[example_overlay.lua](../examples/lua/example_overlay.lua)
+- 中文 UI 示例：[chinese_demo.lua](../examples/lua/chinese_demo.lua)
+- 疯眼算法示例：[mad_eyes_custom.lua](../examples/lua/mad_eyes_custom.lua)
+- 镜头与地面射线示例：[camera_ground_demo.lua](../examples/lua/camera_ground_demo.lua)
 
 ## 目录
 
@@ -19,7 +19,8 @@
 5. [`lunar.game` 游戏数据](#5-lunargame-游戏数据)
 6. [`lunar.mad_eyes` 疯眼算法](#6-lunarmad_eyes-疯眼算法)
 7. [`lunar.draw` 绘制](#7-lunardraw-绘制)
-8. [`lunar.ui` 菜单控件](#8-lunarui-菜单控件)
+8. [原生游戏覆盖层处理器](#原生游戏覆盖层处理器)
+9. [`lunar.ui` 菜单控件](#8-lunarui-菜单控件)
 9. [`lunar.input` 输入](#9-lunarinput-输入)
 10. [`lunar.storage` 持久化](#10-lunarstorage-持久化)
 11. [`lunar.log`、`print` 与 `lunar.system`](#11-lunarlogprint-与-lunarsystem)
@@ -80,6 +81,7 @@ return {
 | `on_draw` | function | 否 | Present 绘制回调 |
 | `on_event` | function | 否 | 事件回调 |
 | `on_unload` | function | 否 | VM 关闭前回调 |
+| `native_overlay` | table | 否 | 原生游戏覆盖层处理器；包含 `priority` 与 `process(frame)` |
 | `tabs` | table[] | 否 | 脚本菜单页，最多读取 16 项 |
 
 ### API 依赖声明
@@ -727,6 +729,117 @@ draw.text(960, 80, "标题", {
 
 `x` 是对齐锚点；`y` 是文本顶部。单条文本最多 4096 字节。每脚本每帧最多 4096 个绘制命令，
 单个折线/多边形最多 1024 点。回调结束时宿主会修复仍未关闭的裁剪栈，但脚本应保持显式配对。
+
+---
+
+## 原生游戏覆盖层处理器
+
+### 模块声明
+
+```lua
+native_overlay = {
+    priority = 100,
+    process = function(frame)
+        -- 原生游戏 ESP/HUD 已构建，但尚未提交到 ImGui。
+    end
+}
+```
+
+该字段是显式选择加入。字段缺失或 `process` 不是函数时，宿主不进行 Lua 表转换，也不调用处理器。它只处理 `RenderEspOverlay` 产生的游戏表层元素，主菜单、Lua 管理器、脚本 Tab 与菜单快捷键 UI 不在 `frame` 中。
+
+多个已加载脚本声明处理器时只运行一个。宿主先比较 `priority`（范围 `-1000..1000`，较高者优先），相同值再按稳定 `script_id` 升序选择。回调预算为 500,000 条指令和 4 ms，且每个原生帧最多包含 4096 个元素。
+
+### `NativeOverlayFrame`
+
+```lua
+{
+    width = 1920,       -- 只读
+    height = 1080,      -- 只读
+    elements = { NativeOverlayElement, ... } -- 长度固定
+}
+```
+
+不要插入、删除或重排数组槽位。需要隐藏某项时设置 `element.visible = false`；需要改变绘制先后时修改 `element.order`。
+
+### `NativeOverlayElement`
+
+```lua
+{
+    tag = "esp.player.label", -- 只读语义标签
+    primitive = "text",       -- 只读图元类型
+    entity_uid = 12345,        -- 只读，非实体元素为 0
+    distance_m = 18.4,         -- 只读
+
+    visible = true,
+    layer = "foreground",     -- foreground/background
+    order = 120,
+
+    x = 900, y = 420,
+    x2 = 1020, y2 = 660,
+    x3 = 0, y3 = 0,
+    radius = 0,
+    text = "玩家名称",          -- 仅 text 图元
+
+    style = {
+        color = { 1, 1, 1, 1 },
+        color2 = { 1, 1, 1, 1 },
+        color3 = { 1, 1, 1, 1 },
+        color4 = { 1, 1, 1, 1 },
+        outline_color = { 0, 0, 0, 0.9 },
+        thickness = 1.4,
+        rounding = 0,
+        font_size = 15,
+        outline = true,
+        outline_size = 2,
+        shadow = false,
+        segments = 0,
+        closed = false
+    }
+}
+```
+
+图元类型：`line`、`rect`、`rect_filled`、`rect_gradient`、`circle`、`circle_filled`、`triangle`、`triangle_filled`、`polyline`、`text`。
+
+稳定标签包括：
+
+```text
+esp.player.box                 esp.player.label
+esp.player.bones               esp.player.progress
+esp.player.offscreen_arrow     esp.generator.label
+esp.generator.progress         esp.door.label
+esp.door.progress              esp.panel.label
+esp.panel.range                esp.goldrush.monster_box
+esp.copycat.firework           esp.imper.cursor
+hud.hunter_prediction          hud.opponent_stats
+hud.knight_prediction          hud.navigation
+hud.talent_panel               hud.copycat_panel
+hud.copycat_event_log          hud.copycat_speakers
+hud.activation_hint
+```
+
+### 提交与错误行为
+
+宿主把默认原生帧转换成脚本私有 Lua 表。只有回调正常结束并且整个表通过类型、有限数值、坐标、颜色、文本长度和元素数量校验后，修改才会一次性提交。异常或无效结果不会产生半修改帧；宿主绘制原始帧、记录错误并停止该脚本。
+
+```lua
+native_overlay = {
+    priority = 100,
+    process = function(frame)
+        for _, element in ipairs(frame.elements) do
+            if element.tag == "esp.player.box" then
+                element.style.color = { 0.25, 0.82, 1.0, 1.0 }
+                element.style.thickness = 2.5
+                element.style.rounding = 5
+            elseif element.tag == "esp.player.label" and element.primitive == "text" then
+                element.text = "[LUA] " .. element.text
+                element.style.font_size = 17
+            end
+        end
+    end
+}
+```
+
+完整可运行示例：[`native_overlay_style.lua`](examples/native_overlay_style.lua)。
 
 ---
 

@@ -25,6 +25,7 @@ jobs:
           test -f assets/lua-docs.css
           test -f assets/lua-docs.js
           test -f lua-api-reference.md
+          test -f examples/native_overlay_style.lua
           node --check assets/lua-docs.js
           python3 - <<'PY'
           from html.parser import HTMLParser
@@ -37,6 +38,7 @@ jobs:
           registry = js[js.index("const api = {"):js.index("const namespaceLabel")]
           records = re.findall(r'^\s*\["[a-z_]+\(', registry, re.M)
           assert len(records) == 67, f"expected 67 APIs, found {len(records)}"
+          assert 'id="native-overlay"' in html, "native overlay section missing"
           print("Static documentation validation passed")
           PY
 

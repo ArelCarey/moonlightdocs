@@ -7,8 +7,8 @@
   <meta name="theme-color" content="#111113">
   <meta name="description" content="Lunar Client Lua API v1 完整开发者文档：游戏数据、疯眼算法、绘制、菜单、输入与持久化。">
   <title>Lunar Lua Developer API</title>
-  <link rel="stylesheet" href="assets/lua-docs.css?v=20260805-3">
-  <script defer src="assets/lua-docs.js?v=20260805-3"></script>
+  <link rel="stylesheet" href="assets/lua-docs.css?v=20260805-4">
+  <script defer src="assets/lua-docs.js?v=20260805-4"></script>
 </head>
 <body>
   <a class="skip-link" href="#main-content">跳到正文</a>
@@ -63,6 +63,7 @@
             <a href="#game"><i></i><span>lunar.game</span><em>17</em></a>
             <a href="#mad-eyes"><i></i><span>lunar.mad_eyes</span><em>6</em></a>
             <a href="#draw"><i></i><span>lunar.draw</span><em>14</em></a>
+            <a href="#native-overlay"><i></i><span>原生覆盖层</span><em>NEW</em></a>
             <a href="#ui"><i></i><span>lunar.ui</span><em>14</em></a>
             <a href="#input"><i></i><span>lunar.input</span><em>8</em></a>
             <a href="#storage"><i></i><span>lunar.storage</span><em>3</em></a>
@@ -148,6 +149,7 @@
               <tr><td><code>on_load</code> / <code>on_unload</code></td><td>function</td><td>初始化与清理</td></tr>
               <tr><td><code>on_tick</code> / <code>on_draw</code></td><td>function</td><td>逻辑与绘制回调</td></tr>
               <tr><td><code>on_event</code></td><td>function</td><td>当前接收 scene_changed</td></tr>
+              <tr><td><code>native_overlay</code></td><td>table</td><td>可选原生游戏覆盖层处理器；不包含主菜单</td></tr>
               <tr><td><code>tabs</code></td><td>table[]</td><td>脚本菜单页，最多 16 项</td></tr>
             </tbody>
           </table>
@@ -210,6 +212,41 @@
       <section class="doc-section namespace-section" id="draw" data-title="lunar.draw">
         <div class="namespace-heading"><span class="namespace-icon">D</span><div><p class="eyebrow">PRESENT DRAWING</p><h2>lunar.draw</h2><p>前景/背景层上的线条、图形、文字与裁剪。</p></div><span class="api-count">14 APIs</span></div>
         <div class="api-list" data-namespace="draw"></div>
+      </section>
+
+      <section class="doc-section" id="native-overlay" data-title="原生游戏覆盖层处理器">
+        <div class="section-heading"><span class="section-index">08</span><div><p class="eyebrow">NATIVE OVERLAY PROCESSOR</p><h2>修改原生游戏绘制</h2></div></div>
+        <p>通过可选的 <code>native_overlay.process(frame)</code>，脚本可在原生 ESP/HUD 提交到 ImGui 前修改文本、颜色、字号、描边、几何位置、可见性和绘制顺序。Lunar 主菜单、Lua 管理器和脚本 Tab 始终由原生客户端绘制，不进入该帧模型。</p>
+        <div class="code-window">
+          <div class="code-title"><span><i></i><i></i><i></i></span><b>native_overlay_style.lua</b><button class="copy-button" type="button">复制</button></div>
+          <pre><code><span class="kw">return</span> {
+  api = <span class="num">1</span>,
+  native_overlay = {
+    priority = <span class="num">100</span>,
+    process = <span class="kw">function</span>(frame)
+      <span class="kw">for</span> _, element <span class="kw">in</span> ipairs(frame.elements) <span class="kw">do</span>
+        <span class="kw">if</span> element.tag == <span class="str">"esp.player.box"</span> <span class="kw">then</span>
+          element.style.color = { <span class="num">0.25</span>, <span class="num">0.82</span>, <span class="num">1</span>, <span class="num">1</span> }
+          element.style.thickness = <span class="num">2.5</span>
+          element.style.rounding = <span class="num">5</span>
+        <span class="kw">elseif</span> element.tag == <span class="str">"esp.player.label"</span>
+            <span class="kw">and</span> element.primitive == <span class="str">"text"</span> <span class="kw">then</span>
+          element.text = <span class="str">"[LUA] "</span> .. element.text
+          element.style.font_size = <span class="num">17</span>
+        <span class="kw">end</span>
+      <span class="kw">end</span>
+    <span class="kw">end</span>
+  }
+}</code></pre>
+        </div>
+        <div class="split-grid">
+          <div class="mini-panel"><span class="panel-icon">T</span><h3>稳定语义标签</h3><p><code>esp.player.box</code>、<code>esp.player.label</code>、<code>esp.generator.progress</code>、<code>hud.navigation</code> 等标签用于定位原生元素。</p></div>
+          <div class="mini-panel"><span class="panel-icon">S</span><h3>事务式提交</h3><p>只有整个 Lua 结果通过类型、数值、颜色、文本和数量校验后才会应用；异常时原生帧保持默认样式。</p></div>
+        </div>
+        <div class="callout"><b>显式启用</b><p>未声明处理器时不创建 Lua 元素表，也不调用预处理回调。数组长度固定；隐藏元素使用 <code>visible = false</code>，改变先后使用 <code>order</code>。</p></div>
+        <div class="schema-block"><h3>可修改字段</h3><pre><code>visible · layer · order · x/y/x2/y2/x3/y3 · radius · text
+style.color · color2/3/4 · outline_color · thickness · rounding
+style.font_size · outline · outline_size · shadow · segments · closed</code></pre></div>
       </section>
 
       <section class="doc-section namespace-section" id="ui" data-title="lunar.ui">

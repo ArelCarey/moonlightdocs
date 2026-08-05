@@ -27,6 +27,10 @@ return {
     on_draw = function(draw) end,
     on_event = function(name, payload) end,
     on_unload = function(reason) end,
+    native_overlay = {
+        priority = 100,
+        process = function(frame) end
+    },
     tabs = {
         { id = "main", title = "Main", render = function(ui) end }
     }
@@ -106,6 +110,36 @@ draw.text(x, y, "text", {
 ```
 
 每脚本每帧最多 4096 个图元，折线/多边形最多 1024 个点。
+
+## 原生游戏覆盖层处理器
+
+脚本可以显式声明 `native_overlay.process(frame)`，在原生 ESP/HUD 写入 ImGui 之前修改其语义化绘制元素。该管线只包含游戏表层；Lunar 主菜单、Lua 管理器、脚本 Tab 和系统菜单控件始终由宿主绘制。
+
+```lua
+native_overlay = {
+    priority = 100,
+    process = function(frame)
+        for _, element in ipairs(frame.elements) do
+            if element.tag == "esp.player.box" then
+                element.style.color = { 0.25, 0.82, 1.0, 1.0 }
+                element.style.thickness = 2.5
+                element.style.rounding = 5.0
+            elseif element.tag == "esp.player.label" and element.primitive == "text" then
+                element.text = "[LUA] " .. element.text
+                element.style.font_size = 17.0
+            elseif element.tag == "esp.player.progress" then
+                element.visible = false
+            end
+        end
+    end
+}
+```
+
+未声明 `native_overlay.process` 时不会创建 Lua 元素表或进入处理回调。多个脚本声明处理器时只选择一个：`priority` 较高者优先，同优先级按稳定 `script_id` 排序。处理器每帧预算为 500,000 条指令 / 4 ms。
+
+`frame` 包含只读的 `width`、`height` 和固定长度的 `elements`。元素可修改字段：`visible`、`layer`、`order`、`x/y/x2/y2/x3/y3`、`radius`、文本元素的 `text`，以及 `style.color/color2/color3/color4/outline_color/thickness/rounding/font_size/outline/outline_size/shadow/segments/closed`。`tag`、`primitive`、`entity_uid`、`distance_m` 用于识别来源。隐藏元素请设置 `visible = false`，不要改变数组长度。
+
+处理结果会先完整校验再提交；回调异常或数据无效时使用未修改的原生帧，并停止对应脚本。完整示例见 [`native_overlay_style.lua`](examples/native_overlay_style.lua)。
 
 ## UI、输入、存储和日志
 
