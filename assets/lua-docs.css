@@ -131,6 +131,12 @@ a { color: inherit; text-decoration: none; }
   transform: skewX(-7deg);
   box-shadow: 0 0 0 1px rgba(255,255,255,.09) inset, 0 6px 20px rgba(174, 139, 148, .12);
 }
+.brand-mark svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+  transform: skewX(7deg) rotate(-8deg);
+}
 .brand-copy { display: flex; flex-direction: column; line-height: 1; letter-spacing: .18em; }
 .brand-copy strong { font-family: var(--font-mono); font-size: 15px; font-weight: 700; }
 .brand-copy small { margin-top: 5px; color: var(--muted); font-family: var(--font-mono); font-size: 9px; letter-spacing: .24em; }
