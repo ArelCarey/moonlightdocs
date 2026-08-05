@@ -1,0 +1,63 @@
+name: Deploy documentation to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Validate static site
+        run: |
+          test -f index.html
+          test -f assets/lua-docs.css
+          test -f assets/lua-docs.js
+          test -f lua-api-reference.md
+          node --check assets/lua-docs.js
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          import re
+
+          html = Path("index.html").read_text(encoding="utf-8")
+          HTMLParser().feed(html)
+          js = Path("assets/lua-docs.js").read_text(encoding="utf-8")
+          registry = js[js.index("const api = {"):js.index("const namespaceLabel")]
+          records = re.findall(r'^\s*\["[a-z_]+\(', registry, re.M)
+          assert len(records) == 65, f"expected 65 APIs, found {len(records)}"
+          print("Static documentation validation passed")
+          PY
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: .
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

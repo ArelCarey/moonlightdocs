@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#111113">
+  <meta name="description" content="Lunar Client Lua API v1 完整开发者文档：游戏数据、疯眼算法、绘制、菜单、输入与持久化。">
+  <title>Lunar Lua Developer API</title>
+  <link rel="stylesheet" href="assets/lua-docs.css">
+  <script defer src="assets/lua-docs.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">跳到正文</a>
+  <div class="page-noise" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <button class="icon-button mobile-menu" id="mobile-menu" type="button" aria-label="打开导航" aria-controls="sidebar" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <a class="brand" href="#overview" aria-label="Lunar Lua 文档首页">
+      <span class="brand-mark" aria-hidden="true">L</span>
+      <span class="brand-copy">
+        <strong>LUNAR</strong>
+        <small>DEVELOPER</small>
+      </span>
+    </a>
+    <div class="topbar-meta">
+      <span class="status-pill"><i></i> API v1</span>
+      <a class="header-link" href="lua-api-reference.md">Markdown</a>
+      <a class="github-link" href="https://github.com/ArelCarey/moonlightdocs" target="_blank" rel="noreferrer">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .8a11.4 11.4 0 0 0-3.6 22.2c.6.1.8-.2.8-.6v-2.2c-3.4.7-4.1-1.4-4.1-1.4-.5-1.4-1.3-1.8-1.3-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.6.1-3.1 0 0 1-.3 3.1 1.2a10.8 10.8 0 0 1 5.7 0c2.2-1.5 3.1-1.2 3.1-1.2.6 1.5.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.8 5.4-5.5 5.7.4.4.8 1.1.8 2.2v3.3c0 .4.2.7.8.6A11.4 11.4 0 0 0 12 .8Z"/></svg>
+        GitHub
+      </a>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-inner">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m20 20-4.6-4.6m2.5-5A7.5 7.5 0 1 1 3 10.5a7.5 7.5 0 0 1 15 0Z"/></svg>
+          <input id="api-search" type="search" placeholder="搜索 API 或字段" autocomplete="off" aria-label="搜索 API">
+          <kbd>Ctrl K</kbd>
+        </div>
+        <p class="search-result" id="search-result" aria-live="polite"></p>
+
+        <nav class="side-nav" aria-label="文档目录">
+          <div class="nav-group">
+            <span class="nav-label">开始</span>
+            <a href="#overview" class="active"><i></i>概览</a>
+            <a href="#quick-start"><i></i>快速开始</a>
+            <a href="#module-contract"><i></i>模块格式</a>
+            <a href="#lifecycle"><i></i>生命周期</a>
+          </div>
+          <div class="nav-group">
+            <span class="nav-label">API 命名空间</span>
+            <a href="#game"><b>G</b><span>lunar.game</span><em>15</em></a>
+            <a href="#mad-eyes"><b>M</b><span>lunar.mad_eyes</span><em>6</em></a>
+            <a href="#draw"><b>D</b><span>lunar.draw</span><em>14</em></a>
+            <a href="#ui"><b>U</b><span>lunar.ui</span><em>14</em></a>
+            <a href="#input"><b>I</b><span>lunar.input</span><em>8</em></a>
+            <a href="#storage"><b>S</b><span>lunar.storage</span><em>3</em></a>
+            <a href="#logging"><b>L</b><span>log · system · keys</span><em>5</em></a>
+          </div>
+          <div class="nav-group">
+            <span class="nav-label">规范</span>
+            <a href="#types"><i></i>数据结构</a>
+            <a href="#sandbox"><i></i>沙箱与限制</a>
+            <a href="#errors"><i></i>错误与调试</a>
+          </div>
+        </nav>
+
+        <div class="sidebar-card">
+          <span class="eyebrow">SOURCE OF TRUTH</span>
+          <strong>Lua API v1</strong>
+          <p>65 个函数已与宿主注册表逐项校验。</p>
+          <a href="lua-api-reference.md">阅读原始参考 →</a>
+        </div>
+      </div>
+    </aside>
+
+    <button class="sidebar-backdrop" id="sidebar-backdrop" type="button" aria-label="关闭导航"></button>
+
+    <main id="main-content">
+      <section class="hero doc-section" id="overview" data-title="概览">
+        <div class="hero-kicker"><span>Lua 5.4</span><i></i><span>Developer API</span></div>
+        <h1>把想法写成<br><span>可控的游戏脚本。</span></h1>
+        <p class="hero-lead">Lunar Lua 提供高精度游戏快照、绘制、菜单、输入、持久化与疯眼动作原语。每个脚本运行在独立沙箱 VM 中，算法由 Lua 完整表达。</p>
+        <div class="hero-actions">
+          <a class="button primary" href="#quick-start">开始编写</a>
+          <a class="button secondary" href="#game">浏览 API</a>
+        </div>
+        <div class="metric-grid">
+          <div><strong>65</strong><span>API 函数</span></div>
+          <div><strong>8</strong><span>命名空间</span></div>
+          <div><strong>20 Hz</strong><span>逻辑 Tick</span></div>
+          <div><strong>16 MiB</strong><span>单 VM 配额</span></div>
+        </div>
+      </section>
+
+      <section class="doc-section" id="quick-start" data-title="快速开始">
+        <div class="section-heading">
+          <span class="section-index">01</span>
+          <div><p class="eyebrow">GETTING STARTED</p><h2>快速开始</h2></div>
+        </div>
+        <p>将 UTF-8 编码的 <code>.lua</code> 文件放入脚本目录，在 Lua 页面扫描后点击加载。</p>
+        <div class="path-card">
+          <div><span>脚本</span><code>%LOCALAPPDATA%\LunarClient\lua\scripts</code></div>
+          <div><span>数据</span><code>%LOCALAPPDATA%\LunarClient\lua\data</code></div>
+          <div><span>日志</span><code>%LOCALAPPDATA%\LunarClient\lua\lua.log</code></div>
+        </div>
+
+        <div class="code-window">
+          <div class="code-title"><span><i></i><i></i><i></i></span><b>hello_lunar.lua</b><button class="copy-button" type="button">复制</button></div>
+          <pre><code><span class="kw">local</span> enabled = lunar.storage.get(<span class="str">"enabled"</span>, <span class="bool">true</span>)
+
+<span class="kw">return</span> {
+  api = <span class="num">1</span>,
+  requires = { <span class="str">"game.entities"</span>, <span class="str">"draw.rect"</span> },
+  name = <span class="str">"Hello Lunar"</span>,
+  version = <span class="str">"1.0.0"</span>,
+
+  on_draw = <span class="kw">function</span>(draw)
+    <span class="kw">if not</span> enabled <span class="kw">then return end</span>
+    <span class="kw">for</span> _, entity <span class="kw">in</span> ipairs(lunar.game.entities(<span class="str">"survivor"</span>)) <span class="kw">do</span>
+      <span class="kw">if</span> entity.has_box <span class="kw">then</span>
+        draw.rect(entity.x, entity.y, entity.width, entity.height,
+          { <span class="num">0.81</span>, <span class="num">0.66</span>, <span class="num">0.70</span>, <span class="num">1.0</span> }, <span class="num">1.5</span>, <span class="num">3.0</span>)
+      <span class="kw">end</span>
+    <span class="kw">end</span>
+  <span class="kw">end</span>
+}</code></pre>
+        </div>
+
+        <div class="callout"><b>扫描与重载</b><p>重新扫描只同步文件列表并保留现有 VM；修改源码后使用脚本卡片上的“重载”。管理器加载状态只存在于当前会话。</p></div>
+      </section>
+
+      <section class="doc-section" id="module-contract" data-title="模块格式">
+        <div class="section-heading"><span class="section-index">02</span><div><p class="eyebrow">MODULE CONTRACT</p><h2>模块格式</h2></div></div>
+        <p>脚本块返回模块表，<code>api = 1</code> 是唯一必需的版本字段。名称、回调和菜单页均按需声明。</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>字段</th><th>类型</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td><code>api</code></td><td>integer</td><td>当前固定为 1</td></tr>
+              <tr><td><code>requires</code></td><td>string[]</td><td>加载前检查的 API 点路径，最多 16 项</td></tr>
+              <tr><td><code>name</code> / <code>version</code></td><td>string</td><td>菜单显示信息，最多读取 128 字节</td></tr>
+              <tr><td><code>on_load</code> / <code>on_unload</code></td><td>function</td><td>初始化与清理</td></tr>
+              <tr><td><code>on_tick</code> / <code>on_draw</code></td><td>function</td><td>逻辑与绘制回调</td></tr>
+              <tr><td><code>on_event</code></td><td>function</td><td>当前接收 scene_changed</td></tr>
+              <tr><td><code>tabs</code></td><td>table[]</td><td>脚本菜单页，最多 16 项</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="split-grid">
+          <div class="mini-panel"><span class="panel-icon">R</span><h3>依赖声明</h3><p>路径不带 <code>lunar.</code> 前缀，例如 <code>mad_eyes.place_wall</code>。缺少依赖时加载在回调注册前结束。</p></div>
+          <div class="mini-panel"><span class="panel-icon">T</span><h3>菜单页</h3><p>每项包含稳定的 <code>id</code>、显示 <code>title</code> 和 <code>render(ui)</code>。控件状态保存在脚本变量中。</p></div>
+        </div>
+      </section>
+
+      <section class="doc-section" id="lifecycle" data-title="生命周期">
+        <div class="section-heading"><span class="section-index">03</span><div><p class="eyebrow">LIFECYCLE</p><h2>生命周期与预算</h2></div></div>
+        <div class="timeline">
+          <div><span>01</span><strong>编译</strong><small>文本模式</small></div>
+          <i></i><div><span>02</span><strong>验证</strong><small>api · requires</small></div>
+          <i></i><div><span>03</span><strong>加载</strong><small>on_load</small></div>
+          <i></i><div><span>04</span><strong>运行</strong><small>event · tick · draw</small></div>
+          <i></i><div><span>05</span><strong>卸载</strong><small>on_unload</small></div>
+        </div>
+        <div class="budget-grid">
+          <div><code>on_tick(dt)</code><strong>150k / 8 ms</strong><span>约 20 Hz</span></div>
+          <div><code>on_draw(draw)</code><strong>250k / 2 ms</strong><span>Present</span></div>
+          <div><code>render(ui)</code><strong>250k / 2 ms</strong><span>Tab 可见</span></div>
+          <div><code>on_event</code><strong>100k / 1 ms</strong><span>事件触发</span></div>
+          <div><code>load / unload</code><strong>500k / 5 ms</strong><span>生命周期</span></div>
+        </div>
+        <p class="fine-print">所有脚本共享每帧 4 ms 调度预算并采用轮转起点。业务逻辑应使用 <code>dt</code> 或 <code>now_ms()</code> 计算时间。</p>
+      </section>
+
+      <section class="doc-section namespace-section" id="game" data-title="lunar.game">
+        <div class="namespace-heading"><span class="namespace-icon">G</span><div><p class="eyebrow">READ-ONLY SNAPSHOT</p><h2>lunar.game</h2><p>场景、实体、玩家、模式数据与世界坐标投影。</p></div><span class="api-count">15 APIs</span></div>
+        <div class="api-list" data-namespace="game"></div>
+        <details class="schema-block" open>
+          <summary><span>Entity</span> 完整实体快照 <em>展开 / 收起</em></summary>
+          <div class="schema-body">
+            <div class="schema-group"><h3>身份</h3><p><code>kind</code> <code>is_self</code> <code>uid</code> <code>role_id</code> <code>unit_type</code> <code>class_name</code> <code>label</code> <code>player_name</code></p></div>
+            <div class="schema-group"><h3>屏幕与世界</h3><p><code>has_box</code> <code>x</code> <code>y</code> <code>width</code> <code>height</code> <code>has_world_box</code> <code>root</code> <code>top</code> <code>distance_m</code> <code>progress</code></p></div>
+            <div class="schema-group"><h3>骨骼与地面</h3><p><code>head_bone</code> <code>bones</code> <code>has_ground_rect</code> <code>has_ground_world</code> <code>ground[4]</code></p></div>
+            <div class="schema-group"><h3>状态</h3><p><code>state_ids</code> <code>states</code> <code>is_dead</code> <code>is_downed</code> <code>health</code> <code>max_health</code> <code>state</code></p></div>
+            <div class="schema-group"><h3>运动</h3><p><code>move_speed</code> <code>velocity_x/y/z</code> <code>velocity_speed</code> <code>motion.direction</code> <code>motion.velocity</code></p></div>
+            <div class="schema-group"><h3>攻击</h3><p><code>attack_reach</code> <code>attack_angle_min/max</code> <code>attack_skill_id</code> <code>is_attacking</code> <code>attack</code></p></div>
+            <div class="schema-group"><h3>模式附加</h3><p><code>skill_name</code> <code>skill_cd</code> <code>camp_id</code> <code>status_extra</code> <code>firework_left</code> <code>is_mirror_survivor</code> <code>is_mary_mirror_projection</code> <code>self_revive_used</code></p></div>
+          </div>
+        </details>
+      </section>
+
+      <section class="doc-section namespace-section" id="mad-eyes" data-title="lunar.mad_eyes">
+        <div class="namespace-heading"><span class="namespace-icon">M</span><div><p class="eyebrow">ALGORITHM PRIMITIVES</p><h2>lunar.mad_eyes</h2><p>Lua 决定目标、预测、方向和高度，宿主提交固定墙段动作。</p></div><span class="api-count">6 APIs</span></div>
+        <div class="api-list" data-namespace="mad_eyes"></div>
+        <div class="callout accent"><b>墙段约束</b><p>三维长度 0.05..30.0；控制台至中点小于 500；每脚本 12 次/秒；只在 on_tick 提交。<code>start.y</code> 与 <code>finish.y</code> 独立生效。</p></div>
+      </section>
+
+      <section class="doc-section namespace-section" id="draw" data-title="lunar.draw">
+        <div class="namespace-heading"><span class="namespace-icon">D</span><div><p class="eyebrow">PRESENT DRAWING</p><h2>lunar.draw</h2><p>前景/背景层上的线条、图形、文字与裁剪。</p></div><span class="api-count">14 APIs</span></div>
+        <div class="api-list" data-namespace="draw"></div>
+      </section>
+
+      <section class="doc-section namespace-section" id="ui" data-title="lunar.ui">
+        <div class="namespace-heading"><span class="namespace-icon">U</span><div><p class="eyebrow">SCRIPT MENU</p><h2>lunar.ui</h2><p>与 Lunar 主菜单视觉一致的脚本设置控件。</p></div><span class="api-count">14 APIs</span></div>
+        <div class="api-list" data-namespace="ui"></div>
+      </section>
+
+      <section class="doc-section namespace-section" id="input" data-title="lunar.input">
+        <div class="namespace-heading"><span class="namespace-icon">I</span><div><p class="eyebrow">BOUNDED INPUT</p><h2>lunar.input</h2><p>按键读取、边沿检测和带自动释放保护的输入队列。</p></div><span class="api-count">8 APIs</span></div>
+        <div class="api-list" data-namespace="input"></div>
+      </section>
+
+      <section class="doc-section namespace-section" id="storage" data-title="lunar.storage">
+        <div class="namespace-heading"><span class="namespace-icon">S</span><div><p class="eyebrow">PERSISTENCE</p><h2>lunar.storage</h2><p>按 script_id 隔离的 64 KiB 原子持久化存储。</p></div><span class="api-count">3 APIs</span></div>
+        <div class="api-list" data-namespace="storage"></div>
+      </section>
+
+      <section class="doc-section namespace-section" id="logging" data-title="日志与系统">
+        <div class="namespace-heading"><span class="namespace-icon">L</span><div><p class="eyebrow">DIAGNOSTICS & SYSTEM</p><h2>log · system · keys</h2><p>日志、单调时间、脚本标识与常用 Windows VK。</p></div><span class="api-count">5 APIs</span></div>
+        <div class="api-list" data-namespace="log"></div>
+        <div class="api-list" data-namespace="system"></div>
+        <div class="key-cloud" aria-label="lunar.keys 常量">
+          <code>backspace</code><code>tab</code><code>enter</code><code>shift</code><code>control</code><code>alt</code><code>escape</code><code>space</code><code>page_up</code><code>page_down</code><code>end</code><code>home</code><code>left</code><code>up</code><code>right</code><code>down</code><code>insert</code><code>delete</code><code>f1..f12</code>
+        </div>
+      </section>
+
+      <section class="doc-section" id="types" data-title="数据结构">
+        <div class="section-heading"><span class="section-index">04</span><div><p class="eyebrow">DATA TYPES</p><h2>通用数据结构</h2></div></div>
+        <div class="type-grid">
+          <article><h3>WorldPoint</h3><pre><code>{
+  x = number,
+  y = number,
+  z = number,
+  valid = boolean
+}</code></pre><p>读取世界坐标前检查 <code>valid</code>。</p></article>
+          <article><h3>ScreenPoint</h3><pre><code>{
+  x = number,
+  y = number,
+  visible = boolean
+}</code></pre><p>由 <code>game.project</code> 返回。</p></article>
+          <article><h3>Color</h3><pre><code>{ r=1, g=.5, b=.7, a=1 }
+{ 1, .5, .7, 1 }
+0xFFFFFFFF -- ABGR</code></pre><p>绘制分量限制到 0.0..1.0。</p></article>
+        </div>
+        <div class="callout"><b>快照语义</b><p>宿主每帧复制数据到脚本私有 Lua 表。修改返回表只影响当前脚本变量。可选坐标使用 valid/visible；可选生命值通常以 -1 表示未知。</p></div>
+      </section>
+
+      <section class="doc-section" id="sandbox" data-title="沙箱与限制">
+        <div class="section-heading"><span class="section-index">05</span><div><p class="eyebrow">SANDBOX</p><h2>沙箱与资源限制</h2></div></div>
+        <div class="library-row">
+          <div><span>开放标准库</span><code>base</code><code>table</code><code>string</code><code>math</code><code>utf8</code></div>
+          <div><span>裁剪全局</span><code>io</code><code>os</code><code>package</code><code>require</code><code>debug</code><code>load</code><code>dofile</code></div>
+        </div>
+        <div class="limit-grid">
+          <div><strong>32</strong><span>脚本</span></div><div><strong>1 MiB</strong><span>源码</span></div><div><strong>16 MiB</strong><span>VM</span></div><div><strong>64 KiB</strong><span>存储</span></div><div><strong>4096</strong><span>绘制/帧</span></div><div><strong>256</strong><span>UI/Tab</span></div><div><strong>64</strong><span>输入队列</span></div><div><strong>256</strong><span>投影点</span></div>
+        </div>
+        <p class="fine-print">Lua 环境只暴露文档列出的固定 <code>lunar.*</code> 宿主函数；脚本侧没有 Python、系统命令、文件、网络、动态库、原生地址或进程接口。</p>
+      </section>
+
+      <section class="doc-section" id="errors" data-title="错误与调试">
+        <div class="section-heading"><span class="section-index">06</span><div><p class="eyebrow">ERROR MODEL</p><h2>错误与调试</h2></div></div>
+        <div class="error-flow">
+          <div><b>加载期</b><p>依次检查文件、文本编译、返回表、API 版本、requires 和 on_load。错误文本保留在脚本卡片。</p></div>
+          <div><b>运行期</b><p>首次回调异常、指令超额或超时后停止脚本，在当前渲染/菜单阶段结束时关闭 VM。</p></div>
+          <div><b>日志</b><p><code>lunar.log.info/warn/error</code> 与 <code>print</code> 写入 <code>lua.log</code> 和调试输出。</p></div>
+        </div>
+        <div class="code-window compact">
+          <div class="code-title"><span><i></i><i></i><i></i></span><b>defensive.lua</b><button class="copy-button" type="button">复制</button></div>
+          <pre><code><span class="kw">local function</span> valid_entity(entity)
+  <span class="kw">return</span> entity
+    <span class="kw">and</span> entity.root
+    <span class="kw">and</span> entity.root.valid
+    <span class="kw">and not</span> entity.is_dead
+<span class="kw">end</span>
+
+<span class="kw">local</span> player = lunar.game.local_player()
+<span class="kw">if</span> valid_entity(player) <span class="kw">then</span>
+  lunar.log.info(<span class="str">"local uid: "</span> .. player.uid)
+<span class="kw">end</span></code></pre>
+        </div>
+      </section>
+
+      <footer>
+        <div class="brand footer-brand"><span class="brand-mark">L</span><span class="brand-copy"><strong>LUNAR</strong><small>DEVELOPER</small></span></div>
+        <p>Lua Developer API v1 · 文档与宿主注册表同步</p>
+        <a href="#overview">返回顶部 ↑</a>
+      </footer>
+    </main>
+
+    <aside class="page-outline" aria-label="当前页面目录">
+      <span>本页目录</span>
+      <nav id="page-outline"></nav>
+    </aside>
+  </div>
+
+  <div class="toast" id="copy-toast" role="status" aria-live="polite">已复制到剪贴板</div>
+  <noscript><div class="noscript">交互式 API 列表需要 JavaScript。完整内容仍可在 <a href="lua-api-reference.md">Markdown 参考</a>中阅读。</div></noscript>
+</body>
+</html>
