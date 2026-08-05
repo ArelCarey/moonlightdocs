@@ -36,7 +36,7 @@ jobs:
           js = Path("assets/lua-docs.js").read_text(encoding="utf-8")
           registry = js[js.index("const api = {"):js.index("const namespaceLabel")]
           records = re.findall(r'^\s*\["[a-z_]+\(', registry, re.M)
-          assert len(records) == 65, f"expected 65 APIs, found {len(records)}"
+          assert len(records) == 67, f"expected 67 APIs, found {len(records)}"
           print("Static documentation validation passed")
           PY
 
