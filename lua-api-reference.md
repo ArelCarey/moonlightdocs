@@ -1,13 +1,14 @@
 # Lunar Lua 开发者 API 完整参考
 
 本文档对应宿主 **Lua API v1**（`lunar.api_version == 1`），以
-`src/runtime/lua_script_system.cpp` 中实际注册的接口为准。当前共有 65 个函数，另有
+`src/runtime/lua_script_system.cpp` 中实际注册的接口为准。当前共有 67 个函数，另有
 `lunar.keys` 常量表和全局 `print`。
 
 - 入门与设计说明：[lua-scripting.md](lua-scripting.md)
 - 基础示例：[example_overlay.lua](examples/lua/example_overlay.lua)
 - 中文 UI 示例：[chinese_demo.lua](examples/lua/chinese_demo.lua)
 - 疯眼算法示例：[mad_eyes_custom.lua](examples/lua/mad_eyes_custom.lua)
+- 镜头与地面射线示例：[camera_ground_demo.lua](examples/lua/camera_ground_demo.lua)
 
 ## 目录
 
@@ -229,6 +230,8 @@ end
 | `lunar.game.scene()` | `string` | 当前场景 |
 | `lunar.game.viewport()` | `Viewport` | 当前渲染尺寸 |
 | `lunar.game.time()` | `GameTime` | 帧号、帧间隔与单调毫秒数 |
+| `lunar.game.camera()` | `CameraRay` | 当前视口中心对应的镜头射线 |
+| `lunar.game.ground_raycast(x?, y?, max_distance?)` | `GroundRaycast?` | 从屏幕点向场景发射射线 |
 | `lunar.game.entities(kind?)` | `Entity[]` | 全部实体或按种类精确筛选 |
 | `lunar.game.local_player()` | `Entity?` | 本地实体；未取得时为 `nil` |
 | `lunar.game.talents()` | `TalentRow[]` | 天赋面板数据 |
@@ -266,6 +269,77 @@ local t = lunar.game.time()
 --   milliseconds = integer -- Windows 单调启动毫秒计时
 -- }
 ```
+
+### `camera()`
+
+读取当前游戏视口中心对应的实时镜头射线。同一渲染帧内结果会缓存并在多个脚本间复用。
+
+```lua
+local camera = lunar.game.camera()
+if camera.valid then
+    -- camera.origin / camera.direction 均为 WorldPoint
+    lunar.log.info(string.format("forward %.3f %.3f %.3f",
+        camera.direction.x, camera.direction.y, camera.direction.z))
+end
+```
+
+返回结构：
+
+```lua
+{
+    valid = true,
+    screen_x = 960.0,
+    screen_y = 540.0,
+    origin = { x = 0.0, y = 0.0, z = 0.0, valid = true },
+    direction = { x = 0.0, y = -0.2, z = 0.98, valid = true }
+}
+```
+
+`direction` 为归一化三维方向；`origin` 是 `screen_to_world` 返回的射线起点，不等同于玩家位置。
+镜头、场景或运行时尚未就绪时仍返回同形表，但 `valid == false`。
+
+### `ground_raycast(x?, y?, max_distance?)`
+
+从活动镜头穿过指定屏幕像素，对静态场景几何执行射线检测：
+
+```lua
+local ray, err = lunar.game.ground_raycast() -- 默认视口中心，最长 5000
+if ray and ray.hit then
+    local p = ray.position
+    if ray.is_ground then
+        lunar.log.info(string.format("ground %.2f %.2f %.2f", p.x, p.y, p.z))
+    end
+end
+```
+
+参数：
+
+| 参数 | 默认值 | 说明 |
+|---|---:|---|
+| `x` | 视口中心 X | 游戏视口像素坐标；传负数同样使用中心 |
+| `y` | 视口中心 Y | 游戏视口像素坐标；传负数同样使用中心 |
+| `max_distance` | `5000` | 世界空间射线长度，范围 `1..20000` |
+
+返回结构：
+
+```lua
+{
+    valid = true,       -- 镜头射线是否可用
+    hit = true,         -- 是否命中静态场景
+    is_ground = true,   -- 法线 y >= 0.35，表示地面或可行走斜坡
+    screen_x = 960.0,
+    screen_y = 540.0,
+    distance = 36.4,
+    origin = WorldPoint,
+    direction = WorldPoint,
+    position = WorldPoint,
+    normal = WorldPoint
+}
+```
+
+命中墙体等近似竖直表面时 `hit == true`、`is_ground == false`，脚本仍可读取命中点与法线。
+未命中时 `position.valid` 和 `normal.valid` 为 `false`。每脚本最多调用 120 次/秒；超过限制时返回
+`nil, "ground raycast rate limit exceeded"`。
 
 ### `entities(kind?)`
 
@@ -876,6 +950,7 @@ Lua 环境没有注册 Python、系统命令、文件、网络、动态库、原
 | 输入待发送队列 | 64 |
 | 输入发送速率 | 100 项/秒/脚本 |
 | 疯眼墙提交速率 | 12 次/秒/脚本 |
+| 地面射线调用速率 | 120 次/秒/脚本 |
 | 所有 Lua 每帧调度预算 | 4 ms |
 
 ---
@@ -1000,4 +1075,3 @@ return {
     }
 }
 ```
-

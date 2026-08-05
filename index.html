@@ -7,8 +7,8 @@
   <meta name="theme-color" content="#111113">
   <meta name="description" content="Lunar Client Lua API v1 完整开发者文档：游戏数据、疯眼算法、绘制、菜单、输入与持久化。">
   <title>Lunar Lua Developer API</title>
-  <link rel="stylesheet" href="assets/lua-docs.css?v=20260805-2">
-  <script defer src="assets/lua-docs.js?v=20260805-2"></script>
+  <link rel="stylesheet" href="assets/lua-docs.css?v=20260805-3">
+  <script defer src="assets/lua-docs.js?v=20260805-3"></script>
 </head>
 <body>
   <a class="skip-link" href="#main-content">跳到正文</a>
@@ -60,7 +60,7 @@
           </div>
           <div class="nav-group">
             <span class="nav-label">API 命名空间</span>
-            <a href="#game"><i></i><span>lunar.game</span><em>15</em></a>
+            <a href="#game"><i></i><span>lunar.game</span><em>17</em></a>
             <a href="#mad-eyes"><i></i><span>lunar.mad_eyes</span><em>6</em></a>
             <a href="#draw"><i></i><span>lunar.draw</span><em>14</em></a>
             <a href="#ui"><i></i><span>lunar.ui</span><em>14</em></a>
@@ -91,7 +91,7 @@
           <a class="button secondary" href="#game">API 参考</a>
         </div>
         <div class="metric-grid">
-          <div><strong>65</strong><span>API 函数</span></div>
+          <div><strong>67</strong><span>API 函数</span></div>
           <div><strong>8</strong><span>命名空间</span></div>
           <div><strong>20 Hz</strong><span>逻辑 Tick</span></div>
           <div><strong>16 MiB</strong><span>单 VM 配额</span></div>
@@ -178,8 +178,15 @@
       </section>
 
       <section class="doc-section namespace-section" id="game" data-title="lunar.game">
-        <div class="namespace-heading"><span class="namespace-icon">G</span><div><p class="eyebrow">READ-ONLY SNAPSHOT</p><h2>lunar.game</h2><p>场景、实体、玩家、模式数据与世界坐标投影。</p></div><span class="api-count">15 APIs</span></div>
+        <div class="namespace-heading"><span class="namespace-icon">G</span><div><p class="eyebrow">READ-ONLY SNAPSHOT</p><h2>lunar.game</h2><p>场景、镜头、地面射线、实体、玩家、模式数据与世界坐标投影。</p></div><span class="api-count">17 APIs</span></div>
         <div class="api-list" data-namespace="game"></div>
+        <details class="schema-block" open>
+          <summary><span>CameraRay · GroundRaycast</span> 镜头与场景命中结构 <em>展开 / 收起</em></summary>
+          <div class="schema-body">
+            <div class="schema-group"><h3>CameraRay</h3><p><code>valid</code> <code>screen_x/y</code> <code>origin: WorldPoint</code> <code>direction: WorldPoint</code></p></div>
+            <div class="schema-group"><h3>GroundRaycast</h3><p><code>valid</code> <code>hit</code> <code>is_ground</code> <code>distance</code> <code>position</code> <code>normal</code></p></div>
+          </div>
+        </details>
         <details class="schema-block" open>
           <summary><span>Entity</span> 完整实体快照 <em>展开 / 收起</em></summary>
           <div class="schema-body">
@@ -257,7 +264,7 @@
           <div><span>裁剪全局</span><code>io</code><code>os</code><code>package</code><code>require</code><code>debug</code><code>load</code><code>dofile</code></div>
         </div>
         <div class="limit-grid">
-          <div><strong>32</strong><span>脚本</span></div><div><strong>1 MiB</strong><span>源码</span></div><div><strong>16 MiB</strong><span>VM</span></div><div><strong>64 KiB</strong><span>存储</span></div><div><strong>4096</strong><span>绘制/帧</span></div><div><strong>256</strong><span>UI/Tab</span></div><div><strong>64</strong><span>输入队列</span></div><div><strong>256</strong><span>投影点</span></div>
+          <div><strong>32</strong><span>脚本</span></div><div><strong>1 MiB</strong><span>源码</span></div><div><strong>16 MiB</strong><span>VM</span></div><div><strong>64 KiB</strong><span>存储</span></div><div><strong>4096</strong><span>绘制/帧</span></div><div><strong>256</strong><span>UI/Tab</span></div><div><strong>64</strong><span>输入队列</span></div><div><strong>256</strong><span>投影点</span></div><div><strong>120/s</strong><span>地面射线</span></div><div><strong>100/s</strong><span>输入发送</span></div><div><strong>12/s</strong><span>墙段提交</span></div><div><strong>1024</strong><span>图形点数</span></div>
         </div>
         <p class="fine-print">Lua 环境只暴露文档列出的固定 <code>lunar.*</code> 宿主函数；脚本侧没有 Python、系统命令、文件、网络、动态库、原生地址或进程接口。</p>
       </section>

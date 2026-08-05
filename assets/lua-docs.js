@@ -6,6 +6,8 @@
       ["scene()", "string", "通用", "返回当前场景：unknown、login、hall、loading 或 game。"],
       ["viewport()", "{ width: number, height: number }", "通用", "返回当前 ImGui 渲染视口尺寸。"],
       ["time()", "{ frame: integer, delta: number, milliseconds: integer }", "通用", "返回 Lua 快照帧序号、0..0.25 秒帧间隔与单调启动毫秒数。"],
+      ["camera()", "CameraRay", "通用", "返回视口中心的实时镜头射线，包括 screen_x、screen_y、origin 与归一化 direction；未就绪时 valid=false。"],
+      ["ground_raycast(x?, y?, max_distance?)", "GroundRaycast | nil, string?", "通用", "从屏幕像素向静态场景发射射线；默认中心和 5000 距离，返回命中点、法线、距离及 is_ground。每脚本最多 120 次/秒。"],
       ["entities(kind?)", "Entity[]", "通用", "返回本帧完整实体副本；kind 为可选的精确种类过滤字符串。"],
       ["local_player()", "Entity | nil", "通用", "返回第一个 is_self 实体；本帧未取得时返回 nil。"],
       ["talents()", "TalentRow[]", "通用", "每项包含 player_name、role_name、talents 与 is_butcher。"],

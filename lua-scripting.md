@@ -1,7 +1,7 @@
 # Lunar Lua 脚本 API v1
 
 > **完整开发者参考：** [lua-api-reference.md](lua-api-reference.md)  
-> 该参考包含全部 65 个函数签名、实体字段、回调上下文、默认值、限制与错误行为；本文保留为快速入门。
+> 该参考包含全部 67 个函数签名、实体字段、回调上下文、默认值、限制与错误行为；本文保留为快速入门。
 
 ## 安装与管理
 
@@ -40,6 +40,8 @@ return {
 - `lunar.game.scene()`：`unknown/login/hall/loading/game`。
 - `lunar.game.viewport()`：`{width,height}`。
 - `lunar.game.time()`：`{frame,delta,milliseconds}`。
+- `lunar.game.camera()`：返回视口中心的实时镜头射线起点与归一化方向。
+- `lunar.game.ground_raycast(x?, y?, max_distance?)`：从屏幕点检测地面/静态场景，返回命中点、法线与距离。
 - `lunar.game.entities(kind?)`、`local_player()`：实体的屏幕框、世界点、骨骼、距离、进度、名称、技能和模式状态。`kind` 新增 `terrain_console`。
 - 玩家实体明细：`uid`、`role_id`、`unit_type`、`states`、`state_ids`、`is_dead`、`is_downed`、`health`、`max_health`。
 - 运动明细：`motion.direction.{x,y,z}`、`motion.velocity.{x,y,z,speed}`、`motion.move_speed`；同名速度字段也保留在实体顶层。
