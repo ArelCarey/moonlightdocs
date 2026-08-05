@@ -232,13 +232,38 @@
     const activate = (id) => links.forEach((link) => {
       link.classList.toggle("active", link.getAttribute("href") === `#${id}`);
     });
-    const observer = new IntersectionObserver((entries) => {
-      const visible = entries
-        .filter((entry) => entry.isIntersecting && !entry.target.hidden)
-        .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
-      if (visible[0]) activate(visible[0].target.id);
-    }, { rootMargin: "-15% 0px -68% 0px", threshold: [0, .05, .2] });
-    sections.forEach((section) => observer.observe(section));
+    let scheduled = false;
+
+    const update = () => {
+      scheduled = false;
+      const available = sections.filter((section) => !section.hidden);
+      if (!available.length) return;
+
+      const marker = Math.min(window.innerHeight * .24, 180);
+      let current = available[0];
+      for (const section of available) {
+        if (section.getBoundingClientRect().top <= marker) current = section;
+        else break;
+      }
+
+      const atPageEnd = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+      activate((atPageEnd ? available.at(-1) : current).id);
+    };
+
+    const scheduleUpdate = () => {
+      if (scheduled) return;
+      scheduled = true;
+      window.requestAnimationFrame(update);
+    };
+
+    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+    window.addEventListener("resize", scheduleUpdate);
+    window.addEventListener("hashchange", scheduleUpdate);
+    links.forEach((link) => link.addEventListener("click", () => {
+      activate(link.getAttribute("href").slice(1));
+      window.setTimeout(scheduleUpdate, 350);
+    }));
+    update();
   }
 
   renderApi();
