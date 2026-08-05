@@ -233,6 +233,7 @@
       link.classList.toggle("active", link.getAttribute("href") === `#${id}`);
     });
     let scheduled = false;
+    let pendingTarget = "";
 
     const update = () => {
       scheduled = false;
@@ -247,7 +248,16 @@
       }
 
       const atPageEnd = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
-      activate((atPageEnd ? available.at(-1) : current).id);
+      const geometricTarget = (atPageEnd ? available.at(-1) : current).id;
+
+      // 点击目录后的平滑滚动会依次经过多个章节。抵达目标章节前固定高亮，
+      // 避免指示条在沿途条目之间来回闪动。
+      if (pendingTarget && geometricTarget !== pendingTarget) {
+        activate(pendingTarget);
+        return;
+      }
+      pendingTarget = "";
+      activate(geometricTarget);
     };
 
     const scheduleUpdate = () => {
@@ -258,10 +268,24 @@
 
     window.addEventListener("scroll", scheduleUpdate, { passive: true });
     window.addEventListener("resize", scheduleUpdate);
-    window.addEventListener("hashchange", scheduleUpdate);
+    window.addEventListener("hashchange", () => {
+      const id = decodeURIComponent(window.location.hash.slice(1));
+      if (sections.some((section) => section.id === id)) {
+        pendingTarget = id;
+        activate(id);
+      }
+      scheduleUpdate();
+    });
+    const cancelPendingTarget = () => {
+      if (!pendingTarget) return;
+      pendingTarget = "";
+      scheduleUpdate();
+    };
+    window.addEventListener("wheel", cancelPendingTarget, { passive: true });
+    window.addEventListener("touchstart", cancelPendingTarget, { passive: true });
     links.forEach((link) => link.addEventListener("click", () => {
-      activate(link.getAttribute("href").slice(1));
-      window.setTimeout(scheduleUpdate, 350);
+      pendingTarget = link.getAttribute("href").slice(1);
+      activate(pendingTarget);
     }));
     update();
   }
